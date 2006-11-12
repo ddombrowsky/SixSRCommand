@@ -1,0 +1,51 @@
+<html>
+ <head>
+  <title>Track details editor</title>
+ </head>
+ <body>
+ <h1>Track details editor</h1>
+
+ <form action="../update/<%= @track.id %>" method="POST">
+
+  <input id="track_id" name="track[id]" size="30" 
+         type="hidden" value="<%= @track.id %>" />
+
+  <p><b>Name</b><br>
+  <input id="track_name" name="track[track_name]" size="30" 
+         type="text" value="<%= @track.track_name %>" />
+  </p>
+
+  <p><b>Path</b><br>
+  <input id="track_path" name="track[track_path]" 
+         size="30" type="text" 
+         value="<%= @track.track_path %>" />
+  </p>
+
+  <p><b>Artist</b><br>
+  <input id="artist" name="track[artist]" 
+         size="30" type="text" 
+         value="<%= @track.artist %>" />
+  </p>
+
+  <p><b>Category:</b><br>
+  <select multiple name="track[category_id]">
+   <% @categories.each do |cat| %>
+       <option value="<%= cat.id %>" 
+         <%= ' selected' if cat.id == @track.category_id %>>
+         <%= cat.name %>
+       </option>
+   <% end %>
+  </select></p>
+
+  <input type="submit" value="Commit Changes" />
+ </form>
+
+ <a href="/track/show/<%= @track.id %>">
+   Show
+ </a> | 
+  <a href="/track/list">
+  Back 
+ </a>
+
+ </body>
+</html>

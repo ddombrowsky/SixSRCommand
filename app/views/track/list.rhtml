@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>6th Street Radio Track Database</title>
+</head>
+<body>
+
+<h1>6th Street Radio: track database</h1>
+
+<%=
+	@startrow = params["startrow"];
+	if @startrow == nil
+		@startrow=0
+	end
+	"starting track id: #@startrow";
+%>
+
+<table border="1">
+ <tr>
+  <td><p align="center"><i><b>select</b></i></td>
+  <td><p align="center"><i><b>track id</b></i></td>
+  <td><p align="center"><i><b>track name</b></i></td>
+  <td><p align="center"><i><b>artist</b></i></td>
+  <td><p align="center"><i><b>album</b></i></td>
+ </tr>
+
+<%
+	if @tracks.respond_to?("each")
+		@tracks.each do |e|
+			%> 
+			<tr>
+				<td><input type="checkbox"></td>
+				<td> <%= e.track_id; %> </td>
+				<td> <%= e.name; %> </td>
+				<td> <%= e.artist; %> </td>
+				<td> <%= e.album; %> </td>
+			</tr> 
+			<% 
+		end
+	else
+		"BAD";
+	end
+	
+%>
+
+</table>
+
+<%
+	if @startrow != "0"
+		@nextrow = @startrow.to_i - 20;
+		%> <a href="list?startrow=<%= @nextrow.to_s %>">back</a><%
+	else
+		%> back <%
+	end
+	@nextrow = @startrow.to_i + 20;
+%> 
+<a href="list?startrow=<%= @nextrow.to_s %>">next</a>
+
+
+</body>
+</html>
