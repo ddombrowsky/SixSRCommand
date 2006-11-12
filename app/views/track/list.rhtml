@@ -14,6 +14,10 @@
 	"starting track id: #@startrow";
 %>
 
+<form action="commitchanges" method="get">
+
+<input type="hidden" name="startrow" value=<%= @startrow %> />
+
 <table border="1">
  <tr>
   <td><p align="center"><i><b>select</b></i></td>
@@ -28,7 +32,12 @@
 		@tracks.each do |e|
 			%> 
 			<tr>
-				<td><input type="checkbox"></td>
+				<td>
+					<input type="checkbox" value=1
+						name="<%= e.track_id.to_s; %>" 
+						<%= if e.is_active? then "checked=1"; end %>
+					>
+				</td>
 				<td> <%= e.track_id; %> </td>
 				<td> <%= e.name; %> </td>
 				<td> <%= e.artist; %> </td>
@@ -54,6 +63,10 @@
 	@nextrow = @startrow.to_i + 20;
 %> 
 <a href="list?startrow=<%= @nextrow.to_s %>">next</a>
+<br>
+
+<input type="submit" value="commit">
+</form>
 
 
 </body>
