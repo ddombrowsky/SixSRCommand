@@ -11,7 +11,6 @@
 	if @startrow == nil
 		@startrow=0
 	end
-	"starting track id: #@startrow";
 %>
 
 <form action="commitchanges" method="get">
@@ -20,11 +19,13 @@
 
 <table border="1">
  <tr>
+  <td><p align="center"><i><b>listid</b></i></td>
   <td><p align="center"><i><b>select</b></i></td>
   <td><p align="center"><i><b>track id</b></i></td>
   <td><p align="center"><i><b>track name</b></i></td>
   <td><p align="center"><i><b>artist</b></i></td>
   <td><p align="center"><i><b>album</b></i></td>
+  <td>playing</td>
  </tr>
 
 <%
@@ -32,16 +33,25 @@
 		@tracks.each do |e|
 			%> 
 			<tr>
+				<td> L<%= e.id; %> </td>
 				<td>
 					<input type="checkbox" value=1
-						name="<%= e.track_id.to_s; %>" 
+						name="<%= e.id.to_s; %>" 
 						<%= if e.is_active? then "checked=1"; end %>
-					>
+					/>
+					<!-- hidden input set to represent the current settings. 
+						this is used to detect the boxes that were unchecked -->
+					<% if e.is_active? %>
+						<input type="hidden" value=1
+							name="cur_<%= e.id.to_s; %>" 
+						/>
+					<% end %>
 				</td>
 				<td> <%= e.track_id; %> </td>
 				<td> <%= e.name; %> </td>
 				<td> <%= e.artist; %> </td>
 				<td> <%= e.album; %> </td>
+				<td> <%= if e.is_playing? then "<font color=\"red\">PLAYING</font>"; end %> </td>
 			</tr> 
 			<% 
 		end
@@ -66,6 +76,28 @@
 <br>
 
 <input type="submit" value="commit">
+</form>
+
+<hr>
+<b>SEARCH</b>
+<form action="search" method="get">
+
+trackid: <input type="text" name="trackid"> (leave blank for PLAYING)<br>
+
+<input type="submit" value="search">
+
+</form>
+
+<hr>
+<b>INSERT</b>
+<form action="insert" method="get">
+
+<input type="hidden" name="startrow" value="<%= @startrow %>">
+
+insert track id <input type="text" name="trackid"> 
+after list data id L<input type="text" name="prevlistid"> 
+<br>
+<input type="submit" value="insert">
 </form>
 
 
