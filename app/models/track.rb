@@ -15,5 +15,15 @@ class Track < ActiveRecord::Base
 		return @r;
 	end
 
+	def Track.find_all(listid)
+		return Track.find_by_sql("
+			select * 
+			from list_data
+			left join tracks using (track_id)
+			where list_id=#{listid}
+			order by ordering
+		");
+	end
+
 	#attr_accessor :is_active;
 end

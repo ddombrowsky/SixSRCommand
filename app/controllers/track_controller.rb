@@ -18,6 +18,7 @@ class TrackController < ApplicationController
 
 		#the list.rhtml file will not be parsed if this renderes text ???
 		#render_text @startrow;
+		#render :text => "Hello world from ruby";
 	end
 
 
@@ -52,7 +53,7 @@ class TrackController < ApplicationController
 
 		@params.each do |e|
 			if(e[0].to_i > 0) 
-				puts "updating record: #{e[0]} = 1";
+				#puts "updating record: #{e[0]} = 1";
 				idx = e[0].to_i;
 				@newset[idx]=1;
 				t = Track.find(idx);
@@ -68,7 +69,7 @@ class TrackController < ApplicationController
 		# clear records that need to be cleared
 		@curset.each do |e|
 			if(not @newset[e])
-				puts "updating record: #{e} = 0";
+				#puts "updating record: #{e} = 0";
 				t = Track.find(e);
 				t.is_active=0;
 				t.save();
@@ -76,7 +77,7 @@ class TrackController < ApplicationController
 		end
 
 		@sr = @params["startrow"];
-		puts "current startrow = #@sr";
+		#puts "current startrow = #@sr";
 		redirect_to :action => "list", :params => {"startrow" => @sr};
 	end
 
@@ -84,10 +85,17 @@ class TrackController < ApplicationController
 		trackid = @params["trackid"];
 		listid = 1;
 
-		# if there is no track to search for, find the currently playing track
+		ldataid = nil;
+
+		# if we're searching by trackid, find the first id with that track id.
+		# all subsequent results (if the track appears more than one) are discarded.
 		if not trackid
-			t=Track.find_by_sql("select track_id from list_data where is_playing=1");
-			trackid=t[0]["track_id"];
+			# if there is no track to search for, find the currently playing track
+			t=Track.find_by_sql("select id from list_data where is_playing=1");
+			ldataid=t[0]["id"];
+		else
+			t=Track.find_by_sql("select id from list_data where track_id=#{trackid} limit 1");
+			ldataid=t[0]["id"];
 		end
 
 		# to get the current window of rows that the searching track resides in,
@@ -95,12 +103,12 @@ class TrackController < ApplicationController
 		# the window size
 		t=Track.find_by_sql("
 			select count(*) as c from list_data where ordering <
-			(select ordering from list_data where track_id=#{trackid})
+			(select ordering from list_data where id=#{ldataid})
 			and list_id=#{listid}
 		");
 		rnum=t[0]["c"].to_i;
 		window=(rnum/20)*20;
-		puts "search found: window:#{window} rnum:#{rnum}";
+		#puts "search found: window:#{window} rnum:#{rnum}";
 
 		redirect_to :action => "list", :params => {"startrow" => window};
 	end
@@ -123,14 +131,15 @@ class TrackController < ApplicationController
 			select id, ordering from list_data 
 			where list_id=#{listid}
 			and ordering > #{curorder}
+			order by ordering
 		");
 
 		neworder = curorder + 1;
 		nextorder = t[0].ordering;
 
 		# make sure there is space
-		if(nextorder - curorder <= 1)
-			puts "reordering...";
+		if((nextorder - curorder <= 1) || (neworder >= nextorder))
+			#puts "reordering...";
 			# no space, must recalculate ordering
 			t.each do |e|
 				e.ordering += 5;
@@ -140,7 +149,7 @@ class TrackController < ApplicationController
 			neworder = curorder + 1;
 		end
 
-		puts "good: cur:#{curorder} next:#{nextorder} new:#{neworder}";
+		#puts "good: cur:#{curorder} next:#{nextorder} new:#{neworder}";
 
 		n=Track.new();
 		n.track_id = newtrackid;
@@ -149,9 +158,14 @@ class TrackController < ApplicationController
 		n.is_active=1;
 		n.save();
 
-		puts "new list_data id: " + n.id.to_s;
+		#puts "new list_data id: " + n.id.to_s;
 
 		redirect_to :action => "list", :params => {"startrow" => startrow};
+	end
+
+	def edit
+		listid=@params["listid"];
+		@tracks=Track.find_all(listid);
 	end
 end
 

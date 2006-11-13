@@ -1,3 +1,5 @@
+<!-- $Id$ -->
+
 <html>
 <head>
 <title>6th Street Radio Track Database</title>
@@ -6,20 +8,21 @@
 
 <h1>6th Street Radio: track database</h1>
 
-<%=
+<%
 	@startrow = params["startrow"];
 	if @startrow == nil
 		@startrow=0
 	end
 %>
 
+<a href="edit?listid=<%= @listid %>">Edit list</a>
 <form action="commitchanges" method="get">
 
 <input type="hidden" name="startrow" value=<%= @startrow %> />
 
 <table border="1">
  <tr>
-  <td><p align="center"><i><b>listid</b></i></td>
+  <td><p align="center"><i><b>Ldataid</b></i></td>
   <td><p align="center"><i><b>select</b></i></td>
   <td><p align="center"><i><b>track id</b></i></td>
   <td><p align="center"><i><b>track name</b></i></td>
