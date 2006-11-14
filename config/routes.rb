@@ -1,11 +1,11 @@
 ActionController::Routing::Routes.draw do |map|
-  map.connect ':controller/commitchanges', :action => 'commitchanges'
 
-  map.connect ':controller/search', :action => 'search'
+  # this defines a "pretty url" field, which is parsed by the regular expression
+  map.connect ':controller/:action/:listid', :listid => /[0-9]+/;
 
-  map.connect ':controller/list', :action => 'list'
-
-  map.connect ':controller', :action => 'list'
+  # default action for this controller (usually track)
+  # doesn't work because of base URL crap
+  #map.connect ':controller', :action => 'list', :listid => '2';
 
 
 #  map.connect ':controller/service.wsdl', :action => 'wsdl'
