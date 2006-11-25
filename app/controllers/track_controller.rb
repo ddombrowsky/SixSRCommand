@@ -85,7 +85,11 @@ class TrackController < ApplicationController
 		if not trackid
 			# if there is no track to search for, find the currently playing track
 			t=Track.find_by_sql("select id from list_data where is_playing=1");
-			ldataid=t[0]["id"];
+			if(t != nil)
+				ldataid=t[0]["id"];
+			else
+				ldataid=0;
+			end
 		else
 			t=Track.find_by_sql("select id from list_data where track_id=#{trackid} limit 1");
 			if(t == nil || t[0] == nil)
@@ -144,9 +148,14 @@ class TrackController < ApplicationController
 			if((nextorder - curorder <= 1) || (neworder >= nextorder))
 				#puts "reordering...";
 				# no space, must recalculate ordering
-				t.each do |e|
+				# must process list from bottom up to avoid
+				# key conflicts
+				ix=t.length-1;
+				while ix>=0 do
+					e=t[ix];
 					e.ordering += 5;
 					e.save();
+					ix=ix-1;
 				end
 				nextorder = t[0].ordering;
 				neworder = curorder + 1;
