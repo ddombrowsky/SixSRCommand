@@ -10,6 +10,13 @@ a mysql server installed somewhere, you should be able to run the interface.  Of
 course, in order to run the radio broadcast part, you'll need the radio server.  But
 that's only needed if you want to actually see the system in action :)
 
+PREREQUISITES
+
+* ruby and rails
+* a mysql server
+* radio server
+* perl
+
 INSTRUCTIONS
 
 * download sixsrcommand-0.1.tar.bz2 from 6thstreetradio.org
