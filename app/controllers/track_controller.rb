@@ -84,7 +84,7 @@ class TrackController < ApplicationController
 		# all subsequent results (if the track appears more than one) are discarded.
 		if not trackid
 			# if there is no track to search for, find the currently playing track
-			t=Track.find_by_sql("select id from list_data where is_playing=1");
+			t=Track.find_by_sql("select id from list_data where is_playing=1 and list_id=#{listid}");
 			if(t != nil)
 				ldataid=t[0]["id"];
 			else
