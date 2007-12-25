@@ -142,23 +142,29 @@ class TrackController < ApplicationController
 			");
 
 			neworder = curorder + 1;
-			nextorder = t[0].ordering;
 
-			# make sure there is space
-			if((nextorder - curorder <= 1) || (neworder >= nextorder))
-				#puts "reordering...";
-				# no space, must recalculate ordering
-				# must process list from bottom up to avoid
-				# key conflicts
-				ix=t.length-1;
-				while ix>=0 do
-					e=t[ix];
-					e.ordering += 5;
-					e.save();
-					ix=ix-1;
-				end
+			# check the case where the insert is on 
+			# the end of the list.  if so, then no
+			# reordering is needed.
+			if(t.length>0)
 				nextorder = t[0].ordering;
-				neworder = curorder + 1;
+
+				# make sure there is space
+				if((nextorder - curorder <= 1) || (neworder >= nextorder))
+					#puts "reordering...";
+					# no space, must recalculate ordering
+					# must process list from bottom up to avoid
+					# key conflicts
+					ix=t.length-1;
+					while ix>=0 do
+						e=t[ix];
+						e.ordering += 5;
+						e.save();
+						ix=ix-1;
+					end
+					nextorder = t[0].ordering;
+					neworder = curorder + 1;
+				end
 			end
 
 			#puts "good: cur:#{curorder} next:#{nextorder} new:#{neworder}";
