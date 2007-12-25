@@ -85,14 +85,14 @@ class TrackController < ApplicationController
 		if not trackid
 			# if there is no track to search for, find the currently playing track
 			t=Track.find_by_sql("select id from list_data where is_playing=1 and list_id=#{listid}");
-			if(t != nil)
+			if((t != nil) && (t.length>0))
 				ldataid=t[0]["id"];
 			else
 				ldataid=0;
 			end
 		else
 			t=Track.find_by_sql("select id from list_data where track_id=#{trackid} limit 1");
-			if(t == nil || t[0] == nil)
+			if((t == nil) || (t.length==0))
 				render :text => "no results for #{trackid}";
 				return
 			end
