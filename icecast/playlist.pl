@@ -13,22 +13,21 @@ use DBI;
 
 use constant {
 	SHUFFLE_LIST => 'shuffle_list.ctrl',
-	LOGFILE => '/usr/local/log/ices/playlist.log'
+	LOGFILE => '/home/sixsr/playlist.log'
 };
-my $HOME ="/home/davek/download/space/ices-2.0.1/conf/";
-chdir($HOME); 
 
 # import configuration
 our $PLAYTYPE = undef;
 our $ITEMNAME = undef;
 our $ITEMORDER = undef;
-require "playlist.conf";
+our $CONTROL_DIR = $ENV{HOME}."/control";
+require "/home/davek/src/ices_conf/playlist.conf";
 
 sub play_control_dir(){
 
 	# process removals first
 	REMOVE: {
-		open(RM,"<ctrl/remove") && do {
+		open(RM,"<$CONTROL_DIR/remove") && do {
 			my $rm = <RM>;
 			last REMOVE if(not defined($rm));
 
@@ -37,17 +36,19 @@ sub play_control_dir(){
 			last REMOVE if($rm eq "");
 
 			# set file to played
-			move($rm,$rm.".played") || die "move failed: <$rm> ".$!;
+			if(not move($rm,$rm.".played")){
+				print(STDERR "move failed: <$rm> ".$!);
+			}
 			close(RM) || die;
 
 			# truncate file
-			open(RM,">ctrl/remove") || die;
+			open(RM,">$CONTROL_DIR/remove") || die;
 			close(RM);
 		};
 	}
 
-	# read all files in ctrl directory
-	opendir(CTRL,"ctrl");
+	# read all files in $CONTROL_DIR directory
+	opendir(CTRL,"$CONTROL_DIR");
 	my @files =  grep(!/^\./,readdir(CTRL));
 
 	# this will play the songs in canonical order
@@ -55,7 +56,7 @@ sub play_control_dir(){
 
 	close(CTRL);
 
-	# process files in ctrl directory
+	# process files in $CONTROL_DIR directory
 	for(@files){
 		# skip the remove file
 		next if(/^remove$/);
@@ -66,11 +67,11 @@ sub play_control_dir(){
 		}
 
 		# this is the next file to be played, print it
-		my $play = $HOME."ctrl/".$_;
+		my $play = "$CONTROL_DIR/".$_;
 		print($play."\n");
 
 		# mark file to be removed
-		open(RM,">ctrl/remove") || die;
+		open(RM,">$CONTROL_DIR/remove") || die;
 		print(RM $play."\n");
 		close(RM);
 
@@ -91,7 +92,7 @@ sub play_by_file(){
 	# select next one from top of shuffeled list
 
 	my $NEXT_INDEX = undef;
-	my $shuf_file = $HOME.SHUFFLE_LIST;
+	my $shuf_file = "/home/davek/src/ices_conf/".SHUFFLE_LIST;
 	SHUFFLE:{
 		my $max_size = scalar(@playlist);
 		open(SHF,"<".$shuf_file) || do {
@@ -183,53 +184,89 @@ sub play_by_dblist(){
 
 	my $listid=$ITEMNAME;
 
-	my $DBH = DBI->connect("DBI:mysql:database=sixthstreet;user=".$ENV{MYSQL_USER}.";password=".$ENV{MYSQL_PASS}) || die $DBI::errstr;
+	my $DBH = DBI->connect("DBI:mysql:database=sixthstreet;host=192.168.1.2;user=".$ENV{MYSQL_USER}.";password=".$ENV{MYSQL_PASS}) || die $DBI::errstr;
 
 	# first, advance the now playing pointer
-	my $cur_id = $DBH->selectall_arrayref("select id from list_data where is_playing=1")->[0]->[0] || die;
-	my $next_id_p = $DBH->selectall_arrayref("
-		select id 
-		from list_data 
-		where ordering > (
-			select ordering 
-			from list_data 
-			where is_playing=1
-		)
-		and is_active=1
-		and list_id=$listid
-		order by ordering
-		limit 1
-	");
-	
-	# loop back to the top if needed
-	if(scalar(@$next_id_p)==0){
+	my $failure = 0;
+	my $next_id_p;
+	my $cur_id;
+	my $cur_id_p;
+	$cur_id_p = $DBH->selectall_arrayref("select id from list_data where is_playing=1 and list_id=$listid") ;
+	if(defined($cur_id_p) && scalar(@$cur_id_p)>0){
 		$next_id_p = $DBH->selectall_arrayref("
-			select min(id)
+			select id 
+			from list_data 
+			where ordering > (
+				select ordering
+				from list_data 
+				where is_playing=1
+				and list_id=$listid
+			)
+			and is_active=1
+			and list_id=$listid
+			order by ordering
+			limit 1
+		") || do {$failure=1;};
+	} else {$failure=1;}
+	
+	if($failure){
+		# no track has is_playing=1
+		print(STDERR "Looks like nothing is playing...... starting radio station over at min(id)\n");
+		$DBH->do("update list_data set is_playing=0 where is_playing=1 and list_id=$listid");
+		my $min=$DBH->selectall_arrayref("select min(id) from list_data where list_id=$listid")->[0]->[0] || die;
+		$cur_id_p = [ [ $min ] ] ;
+		$next_id_p = [ [ $cur_id_p->[0]->[0] ] ] ;
+	};
+	$cur_id = $cur_id_p->[0]->[0];
+
+	if(scalar(@$next_id_p)==0){
+		# there is no next element
+		# loop back to the top 
+		$next_id_p = $DBH->selectall_arrayref("
+			select id
 			from list_data
 			where list_id=$listid
-			and is_active=1
+			and ordering=(
+				select min(ordering)
+				from list_data
+				where list_id=$listid
+				and is_active=1
+			)
 		");
 		die "fell of end of list, argh!" if(not $next_id_p);
 	}
 
 	my $next_id = $next_id_p->[0]->[0];
 	die "next_id not defined!!" if(not defined($next_id));
+	die "cur_id not defined!!" if(not defined($cur_id));
 
 	my $r=0;
-	$r+=$DBH->do("update list_data set is_playing=0 where id=$cur_id\n");
-	$r+=$DBH->do("update list_data set is_playing=1 where id=$next_id\n");
+	$r+=$DBH->do("update list_data set is_playing=0 where id=$cur_id\n") || die;
+	$r+=$DBH->do("update list_data set is_playing=1 where id=$next_id\n") || die;
+	if($r<2){
+		print(STDERR "error updating database.  r=$r\n");
+	}
 
 	my $next_song_p=$DBH->selectall_arrayref("
 		select track_id, path
 		from list_data
 		left join tracks using (track_id)
-		where is_playing=1;
-	")->[0] || die;
+		where is_playing=1
+		and list_id=$listid;
+	")->[0] || die "died getting track path form DB";
 
 	my $track_id = $next_song_p->[0];
 	my $next_song = $next_song_p->[1];
+	if(not defined($next_song)){
+		$next_song='';
+	}
 
-	printf(LOG localtime().": (l:$listid) (u:$r) playing #%5d: $next_song\n",$track_id);
+	if(-f $next_song){
+		printf(LOG localtime().": (list_id:$listid) playing #%5d: $next_song\n",$track_id);
+	}else{
+		printf(LOG localtime().": (list_id:$listid) playing #%5d: ERROR: file not found: $next_song\n",$track_id);
+		$next_song='';
+	}
 	return $next_song;
 }
 
@@ -246,12 +283,22 @@ SELECT: {
 
 	# simple playlist file
 	if($PLAYTYPE eq 'file'){
-		print(play_by_file());
+		print(play_by_file()."\n");
 		last SELECT;
 	}
 	# database list
 	if($PLAYTYPE eq 'dblist'){
-		print(play_by_dblist());
+		my $next = '';
+		my $break_count = 0;
+
+		#  try 100 times to get a song
+		while($next eq ''){
+			$next=play_by_dblist();
+			$break_count++;
+			if($break_count > 100){last;}
+		}
+
+		print($next."\n");
 		last SELECT;
 	}
 
