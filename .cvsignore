@@ -1,11 +1,3 @@
-db
-doc
-lib
-log
-public
-script
-test
 tmp
-vendor
-components
 dbdata.bz2
+log
