@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id$
+# $Id: playlist.pl,v 1.2 2007-12-25 02:48:41 davek Exp $
 #
 # DJ script.  This script picks the next song when run from 
 # icecast (see ices-playlist.xml).  Originall written in perl.
