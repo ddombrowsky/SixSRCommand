@@ -1,12 +1,8 @@
-ActionController::Routing::Routes.draw do |map|
+Rails.application.routes.draw do
+  get 'landing/index'
 
-  # this defines a "pretty url" field, which is parsed by the regular expression
-  map.connect ':controller/:action/:listid', :listid => /[0-9]+/;
+    root 'landing#index'
 
-  # default action for this controller (usually track)
-  # doesn't work because of base URL crap
-  #map.connect ':controller', :action => 'list', :listid => '2';
+    resources :track
 
-
-#  map.connect ':controller/service.wsdl', :action => 'wsdl'
 end

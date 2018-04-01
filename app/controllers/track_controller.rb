@@ -1,4 +1,7 @@
 class TrackController < ApplicationController
+    def index
+        list()
+    end
 
 # screw the worthless scaffolding crap
 #    scaffold :track
