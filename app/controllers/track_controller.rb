@@ -1,17 +1,13 @@
 class TrackController < ApplicationController
     def index
-        list()
     end
-
-# screw the worthless scaffolding crap
-#    scaffold :track
 
     def list
         @startrow = 0;
         @listid = nil;
 
-        if @params["listid"]!=nil
-            @listid=@params["listid"];
+        if params[:listid] != nil
+            @listid=params[:listid];
         else
             if @listid == nil
                 render :text => "invalid listid";
@@ -19,8 +15,8 @@ class TrackController < ApplicationController
             end
         end
 
-        if @params["startrow"]!=nil
-            @startrow=@params["startrow"];
+        if params[:startrow] != nil
+            @startrow=params[:startrow];
         end
         @tracks = Track.get_set(@startrow,@listid);
 

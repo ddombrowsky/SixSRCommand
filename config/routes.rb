@@ -1,8 +1,7 @@
 Rails.application.routes.draw do
-  get 'landing/index'
-
     root 'landing#index'
 
-    resources :track
+    #resources :track
+    get 'track/list/:listid', to: 'track#list'
 
 end

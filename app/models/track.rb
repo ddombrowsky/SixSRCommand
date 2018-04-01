@@ -1,6 +1,6 @@
-class Track < ActiveRecord::Base
-    set_table_name("list_data");
-    set_primary_key("id");
+class Track < ApplicationRecord
+#    set_table_name("list_data");
+#    set_primary_key("id");
 
     def Track.get_set(startrow,listid)
         @r = Track.find_by_sql "
