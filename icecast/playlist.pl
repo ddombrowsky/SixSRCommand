@@ -13,7 +13,7 @@ use DBI;
 
 use constant {
 	SHUFFLE_LIST => 'shuffle_list.ctrl',
-	LOGFILE => '/home/sixsr/playlist.log'
+	LOGFILE => 'playlist.log'
 };
 
 # read parameters
@@ -39,8 +39,8 @@ if($station_name eq "pop"){
 our $PLAYTYPE = undef;
 our $ITEMNAME = undef;
 our $ITEMORDER = undef;
-our $CONTROL_DIR = $ENV{HOME}."/".$ctrl_dir_name;
-require "/home/davek/info/ices_conf/".$conf_name;
+our $CONTROL_DIR = $ENV{PWD}."/".$ctrl_dir_name;
+require $conf_name;
 
 sub play_control_dir(){
 
@@ -202,11 +202,11 @@ sub play_by_file(){
 
 sub play_by_dblist(){
 	die "no MYSQL_USER environment defined" if(not $ENV{MYSQL_USER});
-	die "no MYSQL_PASS environment defined" if(not $ENV{MYSQL_PASS});
+	die "no MYSQL_PASSWORD environment defined" if(not $ENV{MYSQL_PASSWORD});
 
 	my $listid=$ITEMNAME;
 
-	my $DBH = DBI->connect("DBI:mysql:database=sixthstreet;host=192.168.1.2;user=".$ENV{MYSQL_USER}.";password=".$ENV{MYSQL_PASS}) || die $DBI::errstr;
+	my $DBH = DBI->connect("DBI:mysql:database=sixthstreet;host=localhost;user=".$ENV{MYSQL_USER}.";password=".$ENV{MYSQL_PASSWORD}) || die $DBI::errstr;
 
 	# first, advance the now playing pointer
 	my $failure = 0;
