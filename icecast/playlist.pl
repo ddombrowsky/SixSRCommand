@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: playlist.pl,v 1.2 2007-12-25 02:48:41 davek Exp $
+# $Id: playlist.pl,v 1.16 2011-09-18 23:51:50 davek Exp $
 #
 # DJ script.  This script picks the next song when run from 
 # icecast (see ices-playlist.xml).  Originall written in perl.
@@ -16,12 +16,31 @@ use constant {
 	LOGFILE => '/home/sixsr/playlist.log'
 };
 
+# read parameters
+my $station_name = "pop"; # default station
+if(scalar(@ARGV)>0){
+	$station_name = $ARGV[0];
+}
+
+my $ctrl_dir_name = "";
+my $conf_name = "";
+if($station_name eq "pop"){
+	$ctrl_dir_name = "control";
+	$conf_name = "playlist.conf";
+}elsif($station_name eq "tallinn"){
+	$ctrl_dir_name = "control_tallinn";
+	$conf_name = "playlist-tallinn.conf";
+}else{
+	print(STDERR "ERROR: invalid station name: $station_name\n");
+	exit(-1);
+}
+
 # import configuration
 our $PLAYTYPE = undef;
 our $ITEMNAME = undef;
 our $ITEMORDER = undef;
-our $CONTROL_DIR = $ENV{HOME}."/control";
-require "/home/davek/src/ices_conf/playlist.conf";
+our $CONTROL_DIR = $ENV{HOME}."/".$ctrl_dir_name;
+require "/home/davek/info/ices_conf/".$conf_name;
 
 sub play_control_dir(){
 
@@ -83,6 +102,9 @@ sub play_control_dir(){
 	return 0;
 }
 
+# NOTE: this does not work for multiple lists, and 
+# probably never will.  It is intended as a backup if
+# there is no mysql database
 sub play_by_file(){
 
 	open(PL,"<playlist.txt") || die;
