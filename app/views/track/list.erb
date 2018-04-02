@@ -55,7 +55,7 @@
 				<td> <%= e.name; %> </td>
 				<td> <%= e.artist; %> </td>
 				<td> <%= e.album; %> </td>
-				<td> <%= if e.is_playing? then "<font color=\"red\">PLAYING</font>"; else ; "&nbsp;" ; end %> </td>
+				<td> <%= if e.is_playing? then "<font color=\"red\">PLAYING</font>"; else ; " " ; end %> </td>
 				<td> <input type="text" name="com_<%= e.id.to_s %>" value="<%= e.comments %>"> </td>
 			</tr> 
 			<% 
