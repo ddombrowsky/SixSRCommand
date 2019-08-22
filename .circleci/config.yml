@@ -8,6 +8,14 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/ruby:2.4.1-node-browsers
+        environment:
+          MYSQL_PASSWORD: Q5MDg1YTA5ODhhZG
+      - image: circleci/mysql:5.7.26
+        environment:
+          MYSQL_ROOT_PASSWORD: A0ZmVlOTgwODI2Mj
+          MYSQL_DATABASE: sixthstreet
+          MYSQL_USER: radio
+          MYSQL_PASSWORD: Q5MDg1YTA5ODhhZG
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -18,6 +26,17 @@ jobs:
 
     steps:
       - checkout
+      - run:
+      # Our primary container isn't MYSQL so run a sleep command until it's ready.
+          name: Waiting for MySQL to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z 127.0.0.1 3306 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for MySQL && exit 1
 
       # Download and cache dependencies
       - restore_cache:
